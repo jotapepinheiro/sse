@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Server-sent events</title>
+</head>
+<body>
+
+<script>
+  // https://gist.github.com/marttp/5bdfa30acfc44b24ff3262893d61e4ca
+  
+  let eventSource;
+  
+  function start() {
+    if (!window.EventSource) {
+      // IE or an old browser
+      alert("The browser doesn't support EventSource.");
+      return;
+    }
+
+    eventSource = new EventSource('sse.php', { 
+      withCredentials: true 
+    });
+
+    console.log(eventSource.withCredentials);
+    console.log(eventSource.readyState);
+    console.log(eventSource.url);
+    const eventList = document.querySelector('ul');
+
+    eventSource.onopen = () => {
+      log("Conexão com o servidor aberta.");
+    };
+
+    eventSource.onerror = () => {
+      log("Event: erro");
+      if (this.readyState == EventSource.CONNECTING) {
+        log(`Reconectando (readyState=${this.readyState})...`);
+      } else {
+        log("Ocorreu um erro.");
+      }
+    };
+
+    eventSource.addEventListener('cardMessage', (e) => {
+      const newElement = document.createElement("li");
+
+      newElement.textContent = "message: " + e.data;
+      eventList.appendChild(newElement);
+    }, false);
+
+    // eventSource.onmessage = (e) => {
+    //   const newElement = document.createElement("li");
+
+    //   newElement.textContent = "message: " + e.data;
+    //   eventList.appendChild(newElement);
+    // };
+  }
+
+  function stop() {
+    eventSource.close();
+    log("eventSource.close()");
+  };
+
+  function log(msg) {
+    logElem.innerHTML += msg + "<br>";
+    document.documentElement.scrollTop = 99999999;
+  }
+
+</script>
+
+<button onclick="start()">Abrir Conexão</button>
+<button onclick="stop()">Fechar Conexão</button>
+
+<div id="logElem" style="margin: 6px 0"></div>
+
+<ul>
+</ul>
+
+</body>
+</html>
